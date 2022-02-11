@@ -171,4 +171,20 @@ router.post('/deletewishlist', async function (req, res, next){
 
 });
 
+router.get('/myarticles', async function (req, res, next){
+  console.log("---my articles route")
+  console.log("---req.query =>", req.query)
+
+  var user = await userModel.findOne({token : req.query.userToken})
+  console.log("---user =>", user)
+
+
+  var wishlist = 0
+  if(user){
+    wishlist = user.userArticles
+  }
+  let result = true;
+  res.json({result, wishlist})
+});
+
 module.exports = router;

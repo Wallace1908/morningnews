@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import './App.css';
 import { Card, Icon, Modal} from 'antd';
 import Nav from './Nav'
@@ -11,6 +11,24 @@ function ScreenMyArticles(props) {
   const [visible, setVisible] = useState(false)
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
+  
+  const [wishlist, setWishlist] = useState([])
+  console.log("---wishlist", wishlist)
+
+  useEffect(() => {
+    console.log("---useEffect d'actualisation");
+    async function loadMyArticles(){
+      console.log("---function loadMyArticles")
+  
+      var rawResponse = await fetch(`/myarticles?userToken=${props.userToken}`);
+      var res = await rawResponse.json();
+      console.log("---res=>", res);
+      setWishlist(res.wishlist)
+      
+    }
+    loadMyArticles()
+
+  }, []);
 
 
 
@@ -42,10 +60,14 @@ function ScreenMyArticles(props) {
 
     const body = await data.json()
     console.log("---body", body)
+
+    setWishlist(wishlist.filter((article)=>{
+      return article.title != title
+    }))
   }
 
   var noArticles
-  if(props.myArticles == 0){
+  if(wishlist.length == 0){
     noArticles = <div style={{marginTop:"30px"}}>No Articles</div>
   }
 
@@ -61,7 +83,7 @@ function ScreenMyArticles(props) {
             <div className="Card">
     
 
-            {props.myArticles.map((article,i) => (
+            {wishlist.map((article,i) => (
                 <div key={i} style={{display:'flex',justifyContent:'center'}}>
 
                   <Card
@@ -86,7 +108,7 @@ function ScreenMyArticles(props) {
 
                     <Meta
                       title={article.title}
-                      description={article.description}
+                      description={article.content}
                     />
 
                   </Card>
@@ -118,22 +140,23 @@ function ScreenMyArticles(props) {
 }
 
 function mapStateToProps(state){
-  return {myArticles: state.wishList, userToken: state.token}
+  return {userToken: state.token}
 }
 
-function mapDispatchToProps(dispatch){
-  return {
-    deleteToWishList: function(articleTitle){
-      dispatch({type: 'deleteArticle',
-        title: articleTitle
-      })
-    }
-  }
-}
+// function mapDispatchToProps(dispatch){
+//   return {
+//     deleteToWishList: function(articleTitle){
+//       dispatch({type: 'deleteArticle',
+//         title: articleTitle
+//       })
+//     }
+//   }
+// }
 
 
 
 export default connect(
   mapStateToProps,
-  mapDispatchToProps
+  null
+  // mapDispatchToProps
 )(ScreenMyArticles);
