@@ -19,7 +19,7 @@ function ScreenArticlesBySource(props) {
 
   useEffect(() => {
     const findArticles = async() => {
-      const data = await fetch(`https://newsapi.org/v2/top-headlines?sources=${id}&apiKey=b32c8b844d1243b1a7998d8228910f50`)
+      const data = await fetch(`https://newsapi.org/v2/top-headlines?sources=${id}&apiKey=3530b1544bd545aabdd52219db61d8f5`)
       const body = await data.json()
       console.log(body)
       setArticleList(body.articles) 
@@ -43,6 +43,18 @@ function ScreenArticlesBySource(props) {
   var handleCancel = e => {
     console.log(e)
     setVisible(false)
+  }
+
+  var addToWishList = async (article) => {
+    console.log("---addToWishList, article", article)
+    props.addToWishList(article)
+    const data = await fetch('/addtowishlist', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: `titleFromFront=${article.title}&contentFromFront=${article.content}&urlToImageFromFront=${article.urlToImage}&userToken=${props.userToken}`
+    })
+
+    const body = await data.json()
   }
 
   return (
@@ -72,7 +84,7 @@ function ScreenArticlesBySource(props) {
                   }
                   actions={[
                       <Icon type="read" key="ellipsis2" onClick={() => showModal(article.title,article.content)} />,
-                      <Icon type="like" key="ellipsis" onClick={()=> {props.addToWishList(article)}} />
+                      <Icon type="like" key="ellipsis" onClick={()=> addToWishList(article)} />
                   ]}
                   >
 
@@ -107,6 +119,10 @@ function ScreenArticlesBySource(props) {
   );
 }
 
+function mapStateToProps(state){
+  return {userToken: state.token}
+}
+
 function mapDispatchToProps(dispatch){
   return {
     addToWishList: function(article){
@@ -118,6 +134,6 @@ function mapDispatchToProps(dispatch){
 }
 
 export default connect(
-  null,
+  mapStateToProps,
   mapDispatchToProps
 )(ScreenArticlesBySource)
