@@ -101,32 +101,74 @@ router.post('/addtowishlist', async function (req, res, next){
 
   var isAlreadyInDB = false;
 
-  for (let i = 0; i < user.userArticles.length; i++){
-      console.log("---#1req.body.title", req.body.titleFromFront )
-      console.log("---#2user.userArticles[i].title", user.userArticles[i].title)
+  if(user){
+    for (let i = 0; i < user.userArticles.length; i++){
+        console.log("---#1req.body.titleFromFront", req.body.titleFromFront )
+        console.log("---#2user.userArticles[i].title", user.userArticles[i].title)
 
-    if(req.body.titleFromFront === user.userArticles[i].title){
-      console.log("---#1 pk je ne passe pas par ici?")
-      isAlreadyInDB = true
-      console.log("---article already in DB")
+      if(req.body.titleFromFront === user.userArticles[i].title){
+        console.log("---#3 nous entrons dans le if de match")
+        isAlreadyInDB = true
+        console.log("---article already in DB")
+      }
+    }
+
+    if(isAlreadyInDB === false){
+      console.log("---is already in DB =>", isAlreadyInDB)
+      
+      user.userArticles.push(
+        {
+          title: req.body.titleFromFront,
+          content: req.body.contentFromFront,
+          urlToImage: req.body.urlToImageFromFront
+        }
+      );
+
+      var userArticleSaved = await user.save();
+
+        console.log("---userArticle Saved", userArticleSaved);
     }
   }
+  
+  console.log("---isalreadyinDB", isAlreadyInDB)
 
-  if(isAlreadyInDB === false){
-    console.log("---is already in DB =>", isAlreadyInDB)
-    
-    user.userArticles.push(
-      {
-        title: req.body.titleFromFront,
-        content: req.body.contentFromFront,
-        urlToImage: req.body.urlToImageFromFront
+  var result = !isAlreadyInDB 
+
+  res.json({result})
+});
+
+router.post('/deletewishlist', async function (req, res, next){
+  console.log("---deletewishlist route backend")
+  console.log("---req.body", req.body)
+
+  var user = await userModel.findOne({token : req.body.userToken});
+  console.log("---user =>", user);
+
+  var isInDB = false;
+
+  if(user){
+    for (let i = 0; i < user.userArticles.length; i++){
+      console.log("---#1req.body.titleFromFront =>", req.body.titleFromFront )
+      console.log("---#2user.userArticles[i].title =>", user.userArticles[i].title)
+
+      if(req.body.titleFromFront === user.userArticles[i].title){
+        console.log("---#3 nous entrons dans le if de match")
+        isInDB= true
+        console.log("---#4", isInDB)
       }
-    );
+    }
 
-    var userArticleSaved = await user.save();
+    if(isInDB === true){
+      user.userArticles = user.userArticles.filter((article) => (article.title != req.body.titleFromFront))
+    };
 
-      console.log("---userArticle Saved", userArticleSaved);
-  } 
-})
+    var userArticleDeleted = await user.save();
+
+    console.log("---userArticle Deleted", userArticleDeleted)
+  }
+
+  res.json({result: isInDB})
+
+});
 
 module.exports = router;
